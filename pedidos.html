@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante - Flujo Completo</title>
+    <style>
+        section {
+            display: none; /* Oculta todas las secciones por defecto */
+            margin: 20px;
+        }
+        section.active {
+            display: block; /* Muestra solo la sección activa */
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            color: white;
+        }
+        /* Botón amarillo */
+        .btn-amarillo {
+            background-color: #FFD700; /* Amarillo */
+        }
+        /* Botón rojo */
+        .btn-rojo {
+            background-color: #FF4500; /* Rojo */
+        }
+        form {
+            margin-top: 20px;
+        }
+        input {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 200px;
+        }
+        .form-container {
+            max-width: 300px;
+            margin: auto;
+        }
+        .form-toggle {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .form-toggle a {
+            color: blue;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .menu-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Secciones -->
+    <section id="pantalla_principal" class="active">
+        <!-- Título y botón -->
+        <h1>Bienvenido a Chef Papi</h1>
+        <p>Por favor, inicia sesión para continuar.</p>
+        <button class="btn-amarillo" onclick="mostrarSeccion('loguin')">Login</button>
+    </section>
+
+    <section id="loguin">
+        <h1>Login / Registro</h1>
+        <div class="form-container">
+            <!-- Formulario de Login -->
+            <form id="formLogin" onsubmit="validarLogin(event)" class="active-form">
+                <h2>Iniciar Sesión</h2>
+                <input type="text" id="usuarioLogin" placeholder="Nombre de usuario" required>
+                <input type="password" id="contrasenaLogin" placeholder="Contraseña" required>
+                <button class="btn-amarillo" type="submit">Iniciar Sesión</button>
+            </form>
+
+            <!-- Formulario de Registro -->
+            <form id="formRegistro" onsubmit="validarRegistro(event)" style="display: none;">
+                <h2>Registrarse</h2>
+                <input type="text" id="usuarioRegistro" placeholder="Nombre de usuario" required>
+                <input type="password" id="contrasenaRegistro" placeholder="Contraseña" required>
+                <input type="email" id="emailRegistro" placeholder="Correo electrónico" required>
+                <button class="btn-rojo" type="submit">Registrarse</button>
+            </form>
+
+            <!-- Enlace para alternar entre Login y Registro -->
+            <div class="form-toggle">
+                <span id="toggleText">¿No tienes una cuenta? <a onclick="toggleForm()">Regístrate aquí</a></span>
+            </div>
+        </div>
+
+        <p id="mensajeLogin" style="color: red; margin-top: 10px;"></p>
+        <button class="btn-rojo" onclick="mostrarSeccion('pantalla_principal')">Volver a Pantalla Principal</button>
+    </section>
+
+    <section id="menu">
+        <h1>Menú</h1>
+        <div class="menu-item">
+            <h3>Hamburguesa</h3>
+            <p>Deliciosa hamburguesa con queso y vegetales.</p>
+            <button class="btn-amarillo" onclick="seleccionarItem('Hamburguesa')">Seleccionar</button>
+        </div>
+        <div class="menu-item">
+            <h3>Hot Dog</h3>
+            <p>Hot dog clásico con salsa y toppings.</p>
+            <button class="btn-amarillo" onclick="seleccionarItem('Hot Dog')">Seleccionar</button>
+        </div>
+        <div class="menu-item">
+            <h3>Alitas</h3>
+            <p>Alitas de pollo con salsa BBQ.</p>
+            <button class="btn-amarillo" onclick="seleccionarItem('Alitas')">Seleccionar</button>
+        </div>
+        <div class="menu-item">
+            <h3>Salchipapa</h3>
+            <p>Salchipapa con salsa de la casa.</p>
+            <button class="btn-amarillo" onclick="seleccionarItem('Salchipapa')">Seleccionar</button>
+        </div>
+        <button class="btn-rojo" onclick="mostrarSeccion('loguin')">Volver a Login</button>
+    </section>
+
+    <section id="pago">
+        <h1>Pago</h1>
+        <form id="formPago" onsubmit="procesarPago(event)">
+            <h2>Ingresa los datos de tu tarjeta</h2>
+            <input type="text" id="nombreTarjeta" placeholder="Nombre en la tarjeta" required>
+            <input type="text" id="numeroTarjeta" placeholder="Número de tarjeta" required>
+            <input type="text" id="fechaExpiracion" placeholder="Fecha de expiración (MM/AA)" required>
+            <input type="text" id="cvv" placeholder="CVV" required>
+            <button class="btn-amarillo" type="submit">Pagar</button>
+        </form>
+        <p id="mensajePago" style="color: red; margin-top: 10px;"></p>
+        <button class="btn-rojo" onclick="mostrarSeccion('menu')">Volver al Menú</button>
+    </section>
+
+    <section id="rastreo_pedido">
+        <h1>Rastreo del Pedido</h1>
+        <p id="estadoPedido">Tu pedido está siendo preparado.</p>
+        <button class="btn-rojo" onclick="mostrarSeccion('menu')">Volver al Menú</button>
+    </section>
+
+    <script>
+        // Objeto para almacenar los usuarios registrados
+        const usuariosRegistrados = {};
+
+        // Función para mostrar una sección y ocultar las demás
+        function mostrarSeccion(idSeccion) {
+            // Oculta todas las secciones
+            document.querySelectorAll('section').forEach(seccion => {
+                seccion.classList.remove('active');
+            });
+
+            // Muestra la sección solicitada
+            document.getElementById(idSeccion).classList.add('active');
+        }
+
+        // Función para alternar entre Login y Registro
+        function toggleForm() {
+            const formLogin = document.getElementById('formLogin');
+            const formRegistro = document.getElementById('formRegistro');
+            const toggleText = document.getElementById('toggleText');
+
+            if (formLogin.style.display === 'none') {
+                formLogin.style.display = 'block';
+                formRegistro.style.display = 'none';
+                toggleText.innerHTML = '¿No tienes una cuenta? <a onclick="toggleForm()">Regístrate aquí</a>';
+            } else {
+                formLogin.style.display = 'none';
+                formRegistro.style.display = 'block';
+                toggleText.innerHTML = '¿Ya tienes una cuenta? <a onclick="toggleForm()">Inicia sesión aquí</a>';
+            }
+        }
+
+        // Función para validar el login
+        function validarLogin(event) {
+            event.preventDefault(); // Evita que el formulario se envíe
+
+            // Obtiene los valores del formulario
+            const usuario = document.getElementById('usuarioLogin').value;
+            const contrasena = document.getElementById('contrasenaLogin').value;
+
+            // Verifica si el usuario está registrado y la contraseña coincide
+            if (usuariosRegistrados[usuario] && usuariosRegistrados[usuario] === contrasena) {
+                document.getElementById('mensajeLogin').textContent = "Inicio de sesión exitoso.";
+                mostrarSeccion('menu'); // Redirige al Menú
+            } else {
+                document.getElementById('mensajeLogin').textContent = "Usuario o contraseña incorrectos.";
+            }
+        }
+
+        // Función para validar el registro
+        function validarRegistro(event) {
+            event.preventDefault(); // Evita que el formulario se envíe
+
+            // Obtiene los valores del formulario
+            const usuario = document.getElementById('usuarioRegistro').value;
+            const contrasena = document.getElementById('contrasenaRegistro').value;
+            const email = document.getElementById('emailRegistro').value;
+
+            // Validación básica (puedes cambiarla según tus necesidades)
+            if (usuario && contrasena && email) {
+                // Guarda el usuario y contraseña en el objeto
+                usuariosRegistrados[usuario] = contrasena;
+                document.getElementById('mensajeLogin').textContent = "Registro exitoso. Ahora puedes iniciar sesión.";
+                toggleForm(); // Cambia al formulario de login después del registro
+            } else {
+                document.getElementById('mensajeLogin').textContent = "Por favor, completa todos los campos.";
+            }
+        }
+
+        // Función para seleccionar un ítem del menú
+        function seleccionarItem(item) {
+            alert(`Has seleccionado: ${item}`);
+            mostrarSeccion('pago'); // Redirige a la sección de pago
+        }
+
+        // Función para procesar el pago
+        function procesarPago(event) {
+            event.preventDefault(); // Evita que el formulario se envíe
+
+            // Obtiene los valores del formulario
+            const nombreTarjeta = document.getElementById('nombreTarjeta').value;
+            const numeroTarjeta = document.getElementById('numeroTarjeta').value;
+            const fechaExpiracion = document.getElementById('fechaExpiracion').value;
+            const cvv = document.getElementById('cvv').value;
+
+            // Validación básica (puedes cambiarla según tus necesidades)
+            if (nombreTarjeta && numeroTarjeta && fechaExpiracion && cvv) {
+                document.getElementById('mensajePago').textContent = "Pago procesado correctamente.";
+                mostrarSeccion('rastreo_pedido'); // Redirige al rastreo del pedido
+            } else {
+                document.getElementById('mensajePago').textContent = "Por favor, completa todos los campos.";
+            }
+        }
+    </script>
+</body>
+</html>
